@@ -8,12 +8,11 @@ namespace Trawler
 {
 	internal class Program
 	{
-
 		private static DiscordSocketClient client;
-        private static bool verbose = false;
-        private static string version = "0.1b";
-        private static string token = "unsupplied";
-        private static string UsageInformation = "dotnet run Trawler.csproj --token=SOMETOKEN [--verbose --version]";
+		private static bool verbose = false;
+		private static string version = "0.1b";
+		private static string token = "unsupplied";
+		private static string UsageInformation = "dotnet run Trawler.csproj --token=SOMETOKEN [--verbose --version]";
 
 		internal static void WriteToLog(string message)
 		{
@@ -71,13 +70,13 @@ namespace Trawler
 			new Program().MainAsync().GetAwaiter().GetResult();
 			WriteToLog("Done.");
 			Console.WriteLine("Connected.");
-        }
+		}
 		internal async Task MainAsync()
 		{
 
-            DiscordSocketConfig config = new DiscordSocketConfig();
-            config.GatewayIntents = GatewayIntents.All;
-            Program.client = new DiscordSocketClient(config);
+			DiscordSocketConfig config = new DiscordSocketConfig();
+			config.GatewayIntents = GatewayIntents.All;
+			Program.client = new DiscordSocketClient(config);
 
 			// Create client.
 			Program.client.Log += Log;
@@ -114,5 +113,5 @@ namespace Trawler
 		{
 			return Task.CompletedTask;
 		}
-    }
+	}
 }
