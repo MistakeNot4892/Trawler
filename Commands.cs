@@ -34,7 +34,8 @@ namespace Trawler
 		{
 			await WriteToLog("Registering commands.");
 
-			// Load command data.
+			// Load and build command data.
+			List<ApplicationCommandProperties> bulkCommands = new List<ApplicationCommandProperties>();
 			foreach(string file in Directory.GetFiles("data/", "cmd_*.json", SearchOption.AllDirectories))
 			{
 				using (StreamReader filestream = File.OpenText(file))
@@ -49,9 +50,11 @@ namespace Trawler
 							newCmd.name = cmdJson["name"].ToString();
 							newCmd.desc = cmdJson["desc"].ToString();
 							commands[newCmd.name] = newCmd;
+
 							SlashCommandBuilder builder = new SlashCommandBuilder();
 							builder.WithName(newCmd.name);
 							builder.WithDescription(newCmd.desc);
+
 							if(cmdJson["params"] != null)
 							{
 								foreach(JProperty paramJson in cmdJson["params"])
@@ -65,8 +68,9 @@ namespace Trawler
 									);
 								}
 							}
-							await RegisterCommand(builder, newCmd.name, newCmd.desc);
-							await WriteToLog($"Registered {newCmd.name}.");
+
+							bulkCommands.Add(builder.Build());
+							await WriteToLog($"Built {newCmd.name}.");
 						}
 						catch(Exception e)
 						{
@@ -75,17 +79,14 @@ namespace Trawler
 					}
 				}
 			}
-		}
 
-		internal async Task RegisterCommand(SlashCommandBuilder cmdBuilder, string cmdName, string cmdDesc)
-		{
 			try
 			{
-				await client.CreateGlobalApplicationCommandAsync(cmdBuilder.Build());
+				await client.BulkOverwriteGlobalApplicationCommandsAsync(bulkCommands.ToArray());
 			}
-			catch(HttpException exception)
+			catch(Exception e)
 			{
-				await WriteToLog(exception.Message.ToString());
+				await WriteToLog($"Exception when bulk registering commands: {e.Message.ToString()}");
 			}
 		}
 
