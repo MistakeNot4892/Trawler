@@ -1,0 +1,15 @@
+{
+    "name"   : "fish",
+    "desc"   : "Search the database for information about Aetolian fishing holes.",
+    "usage"  : "fish <string to search for>",
+    "class"  : "Trawler.CommandDefFish",
+    "params" : 
+    {
+        "search_string" :
+        {
+            "type"     : "String",
+            "desc"     : "The fish name or fishing hole you wish to search for.",
+            "required" : true
+        }
+    } 
+}

@@ -1,0 +1,6 @@
+{
+    "name"  : "fishadd",
+    "desc"  : "Add a new fish or fishing hole.",
+    "usage" : "fishadd <blah>",
+    "class" : "Trawler.CommandDefFishAdd"
+}

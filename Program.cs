@@ -2,28 +2,20 @@
 using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace Trawler
 {
-	internal class Program
+	internal partial class Program
 	{
 		private static DiscordSocketClient client;
-		private static bool verbose = false;
 		private static string version = "0.1b";
 		private static string token = "unsupplied";
-		private static string UsageInformation = "dotnet run Trawler.csproj --token=SOMETOKEN [--verbose --version]";
+		private static string UsageInformation = "dotnet run Trawler.csproj --token=SOMETOKEN [--version]";
 
-		internal static void WriteToLog(string message)
+		internal static Task WriteToLog(string message)
 		{
-			if(verbose)
-			{
-				Console.WriteLine(message);
-			}
-			else
-			{
-				Debug.WriteLine(message);
-			}
+			Console.WriteLine(message);
+			return Task.CompletedTask;
 		}
 
 		internal static void Main(string[] args)
@@ -34,19 +26,15 @@ namespace Trawler
 				string check_token = args[i];
 				if(check_token.ToLower().Contains("version"))
 				{
-					Console.WriteLine($"Trawler v{version}");
+					WriteToLog($"Trawler v{version}");
 					return;
-				}
-				else if(check_token.ToLower().Contains("verbose"))
-				{
-					Program.verbose = true;
 				}
 				else if(check_token.ToLower().Contains("token"))
 				{
 					if(Program.token != "unsupplied")
 					{
-						Console.WriteLine("Duplicate token supplied.");
-						Console.WriteLine(UsageInformation);
+						WriteToLog("Duplicate token supplied.");
+						WriteToLog(UsageInformation);
 						return;
 					}
 					int splitpoint = check_token.IndexOf('=')+1;
@@ -60,58 +48,47 @@ namespace Trawler
 
 			if(token == null)
 			{
-				Console.WriteLine("Please specify a Discord secrets token to use when connecting with this bot.");
-				Console.WriteLine(UsageInformation);
+				WriteToLog("Please specify a Discord secrets token to use when connecting with this bot.");
+				WriteToLog(UsageInformation);
 				return;
 			}
 
-			Console.WriteLine($"Connecting with token '{token}'.");
-
+			WriteToLog($"Connecting with token '{token}'.");
 			new Program().MainAsync().GetAwaiter().GetResult();
-			WriteToLog("Done.");
-			Console.WriteLine("Connected.");
+			WriteToLog("Connected.");
 		}
 		internal async Task MainAsync()
 		{
-
-			DiscordSocketConfig config = new DiscordSocketConfig();
-			config.GatewayIntents = GatewayIntents.All;
-			Program.client = new DiscordSocketClient(config);
+			
+			await LoadFishDatabase(); // >(>>.)
 
 			// Create client.
-			Program.client.Log += Log;
-			Program.client.MessageReceived += MessageReceived;
+			Program.client = new DiscordSocketClient(new DiscordSocketConfig());
+			Program.client.Log += (msg) => { return WriteToLog($"{msg.ToString()}"); };
+			Program.client.Ready += InitializeClient;
+			Program.client.SlashCommandExecuted += SlashCommandHandler;
 
 			while(true)
 			{
 				try
 				{
-					WriteToLog("Logging in client.");
+					await WriteToLog("Logging in client.");
 					await Program.client.LoginAsync(TokenType.Bot, token);
-					WriteToLog("Starting main loop.");
+					await WriteToLog("Starting main loop.");
 					await Program.client.StartAsync();
 					await Task.Delay(-1);
 				}
 				catch(Exception e)
 				{
-					WriteToLog($"Core loop exception: {e.Message}.");
+					await WriteToLog($"Core loop exception: {e.Message}.");
 					break;
 				}
 			}
 		}
-
-		private static Task MessageReceived(SocketMessage message)
+		private async Task InitializeClient()
 		{
-			Task.Run(() => HandleMessage(message));
-			return Task.FromResult(0);
-		}
-
-		private static void HandleMessage(SocketMessage message)
-		{
-		}
-		private Task Log(LogMessage msg)
-		{
-			return Task.CompletedTask;
+			await WriteToLog("Initializing client.");
+			await RegisterCommands();
 		}
 	}
 }
